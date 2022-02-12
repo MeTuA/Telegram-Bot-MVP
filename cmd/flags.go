@@ -5,17 +5,10 @@ import (
 )
 
 var (
-	port             string
 	token            string
 	unsplashClientID string
 
 	flags = []cli.Flag{
-		&cli.StringFlag{
-			Name:        "port",
-			EnvVars:     []string{"PORT"},
-			Destination: &port,
-			Required:    true,
-		},
 		&cli.StringFlag{
 			Name:        "token",
 			EnvVars:     []string{"TELEGRAM_TOKEN"},
