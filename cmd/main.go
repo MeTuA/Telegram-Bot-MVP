@@ -1,22 +1,28 @@
 package main
 
 import (
+	"bot/mvp/telegram"
+	"bot/mvp/unsplash"
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"sync"
 
-	"github.com/labstack/echo/v4"
+	"github.com/hashicorp/go-hclog"
 
 	"github.com/urfave/cli/v2"
 )
 
 func main() {
 
+	log := hclog.New(&hclog.LoggerOptions{
+		Name: "telegram bot",
+	})
+
 	app := &cli.App{
 		Name:  "PhotoRand Telegram Bot",
 		Usage: "go run .",
+		Flags: flags,
 	}
 
 	app.Action = func(c *cli.Context) error {
@@ -25,16 +31,23 @@ func main() {
 		ctx, cancel := context.WithCancel(context.TODO())
 		wg := &sync.WaitGroup{}
 
-		e := echo.New()
-		e.GET("/", func(c echo.Context) error { return c.JSON(200, "hi") })
+		unsplashCredentials := unsplash.Credentials{
+			ClientID: unsplashClientID,
+		}
 
-		startService(ctx, wg, e)
+		unsplashService := unsplash.NewService(unsplashCredentials, log.Named("unsplashService"))
+
+		tgService := telegram.NewService(unsplashService, log.Named("telegramService"))
+		go func() {
+			tgService.GetUpdates(ctx, wg, token)
+		}()
+
 		waitForExit(cancel, wg)
 		return nil
 	}
 
 	err := app.Run(os.Args)
 	if err != nil {
-		log.Fatal(1)
+		os.Exit(1)
 	}
 }

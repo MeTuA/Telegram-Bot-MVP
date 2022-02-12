@@ -37,11 +37,12 @@ func startService(ctx context.Context, wg *sync.WaitGroup, e *echo.Echo) {
 }
 
 func waitForExit(cancel func(), wg *sync.WaitGroup) {
+	fmt.Println("starting waitForExit")
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
 	<-c
 	cancel()
 	wg.Wait()
-	fmt.Println("exiting")
+	fmt.Println("Stopping application")
 }
